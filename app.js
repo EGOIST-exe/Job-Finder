@@ -1,4 +1,6 @@
 import { jobs, categories, interests, values, environments, questions, mbtiTypes, typeNames } from './data.js';
+const Q = questions.length; // Anzahl Fragen; danach folgen Interessen, Werte und Umgebungen.
+const TOTAL_STEPS = Q + 3;
 import { makeProfile, rankJobs, scoreJob, isQuizComplete, sanitizeQuiz } from './matching.js';
 
 const paths = {
@@ -29,6 +31,11 @@ const paths = {
   activity: '<path d="M1 12h5l3-9 6 18 3-9h5"/>',
   factory: '<path d="M3 21V10l6 4V8l7 5V3h4l2 18H3ZM6 18h2m3 0h2m3 0h2"/>',
   bag: '<path d="M4 7h16l1 14H3L4 7Zm4 2V5a4 4 0 0 1 8 0v4"/>',
+  film: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3"/>',
+  anchor: '<circle cx="12" cy="5" r="2"/><path d="M12 7v14M8 11h8M4 13a8 8 0 0 0 16 0"/>',
+  scissors: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/>',
+  landmark: '<path d="M3 21h18M5 21V10m4 11V10m6 11V10m4 11V10M2 10l10-7 10 7Z"/>',
+  pulse: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
   bolt: '<path d="m13 1-9 13h7l-1 9L21 9h-8l0-8Z"/>',
   globe: '<circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="4" ry="10"/><path d="M2 12h20M4 6h16M4 18h16"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -46,7 +53,7 @@ let storageAvailable = true;
 function readSavedState() { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { storageAvailable = false; return {}; } }
 const saved = readSavedState();
 let quiz = sanitizeQuiz(saved.quiz);
-let quizStep = Number.isInteger(saved.step) ? Math.min(14, Math.max(0, saved.step)) : 0;
+let quizStep = Number.isInteger(saved.step) ? Math.min(Q + 2, Math.max(0, saved.step)) : 0;
 let bookmarks = new Set(Array.isArray(saved.bookmarks) ? saved.bookmarks.filter(id => jobs.some(job => job.id === id)) : []);
 let profile = isQuizComplete(quiz) ? makeProfile(quiz) : null;
 let filters = { search: '', category: 'all', sort: 'default', limit: 12 };
@@ -138,7 +145,7 @@ function homePage() {
       <div class="center-action"><a class="button button-outline" href="#explore">Alle ${jobs.length} Berufe entdecken ${icon('arrow')}</a></div>
     </section>
     <section class="section how-section" id="how" aria-labelledby="how-heading"><div class="how-title"><div class="eyebrow">Kein Bewerbungsgespräch.<br>Versprochen.</div><h2 id="how-heading">Ein paar Fragen.<br>Eine neue Richtung.</h2></div>
-      <div class="steps"><div><div class="step-number">01 /</div><h3>Erzähl mal von dir.</h3><p>Team „erst mal planen“ oder „einfach machen“? Beantworte 12 kleine Alltagsfragen und wähle, was dir wichtig ist.</p></div><div><div class="step-number">02 /</div><h3>Wir verbinden die Punkte.</h3><p>Deine Interessen und Arbeitswünsche treffen auf 240 Berufsideen. Dein MBTI-Typ gibt einen kleinen Extra-Impuls.</p></div><div><div class="step-number">03 /</div><h3>Entdecke dein „Was wäre, wenn?“</h3><p>Finde neue Ideen, schau dir die Gründe an und merke dir Favoriten. Dein nächster Schritt darf klein anfangen.</p></div></div>
+      <div class="steps"><div><div class="step-number">01 /</div><h3>Erzähl mal von dir.</h3><p>Team „erst mal planen“ oder „einfach machen“? Beantworte ${questions.length} kleine Alltagsfragen und wähle, was dir wichtig ist.</p></div><div><div class="step-number">02 /</div><h3>Wir verbinden die Punkte.</h3><p>Deine Interessen und Arbeitswünsche treffen auf ${jobs.length} Berufsideen. Dein MBTI-Typ gibt einen kleinen Extra-Impuls.</p></div><div><div class="step-number">03 /</div><h3>Entdecke dein „Was wäre, wenn?“</h3><p>Finde neue Ideen, schau dir die Gründe an und merke dir Favoriten. Dein nächster Schritt darf klein anfangen.</p></div></div>
       <p class="small-note">${icon('info')} Ein Kompass, kein Orakel: Das Matching ist eine spielerische Orientierung, kein Eignungstest. Ein Persönlichkeitstyp entscheidet nicht darüber, was du werden kannst.</p>
     </section>
     <section class="cta-banner"><div><div class="eyebrow" style="margin-bottom:12px">Neugierig auf dich selbst?</div><h2>Deine Zukunft hat noch<br>ein paar gute Ideen.</h2><p>Entdecke die ersten. Ganz ohne Lebenslauf.</p></div><span class="cta-decoration" aria-hidden="true">✳</span><button class="button button-dark" data-start>Los geht’s ${icon('arrow-up-right')}</button></section>
@@ -198,11 +205,11 @@ function quizPage() {
     title = question.title; subtitle = question.subtitle; label = question.kind === 'personality' ? 'Dein erster Impuls zählt' : 'Was macht dich neugierig?';
     options = question.options.map(([key, text, optionIcon], i) => optionMarkup(i, text, optionIcon, quiz.answers[quizStep] === i)).join('');
     allowNext = quiz.answers[quizStep] !== null;
-  } else if (quizStep === 12) {
+  } else if (quizStep === Q) {
     title = 'Wobei vergisst du die Zeit?'; subtitle = 'Wähle bis zu 3 Bereiche, die dich wirklich interessieren. Du musst darin noch nicht gut sein.'; label = 'Deine Interessen geben die Richtung vor';
     options = interests.map(i => optionMarkup(i.id, i.title, i.icon, quiz.interests.includes(i.id), i.text)).join('');
     extra = `<p class="selection-count">${quiz.interests.length} von maximal 3 ausgewählt · mindestens 1</p>`; allowNext = quiz.interests.length > 0;
-  } else if (quizStep === 13) {
+  } else if (quizStep === Q + 1) {
     title = 'Ein guter Job sollte dir …'; subtitle = '… mehr geben als die Antwort auf „Und, was machst du so?“. Wähle bis zu 3 Dinge, die dir wichtig sind.'; label = 'Dein Job. Deine Prioritäten.';
     options = values.map(v => optionMarkup(v.id, v.label, v.icon, quiz.values.includes(v.id))).join('');
     extra = `<p class="selection-count">${quiz.values.length} von maximal 3 ausgewählt · mindestens 1</p>`; allowNext = quiz.values.length > 0;
@@ -212,10 +219,10 @@ function quizPage() {
     extra = `<div class="optional-panel"><label for="known-type">Du kennst deinen MBTI-Typ bereits? <span style="color:var(--muted)">(optional)</span></label><select id="known-type"><option value="">Aus meinen Antworten ableiten</option>${mbtiTypes.map(type => `<option value="${type}" ${quiz.knownType === type ? 'selected' : ''}>${type} — ${typeNames[type]}</option>`).join('')}</select><p>Deine Angabe ersetzt nur den MBTI-Impuls. Interessen und Arbeitswünsche bleiben wichtiger.</p></div>`; allowNext = true;
   }
   const hasProgress = quiz.answers.some(answer => answer !== null);
-  return `<div class="quiz-page page-enter"><div class="quiz-toolbar"><button class="text-button" data-exit-quiz>${icon('x')} Für später aufheben</button><span>Schritt ${quizStep + 1} von 15</span></div><div class="progress-track" role="progressbar" aria-label="Quizfortschritt" aria-valuemin="0" aria-valuemax="15" aria-valuenow="${quizStep + 1}"><div style="width:${(quizStep + 1) / 15 * 100}%"></div></div>
+  return `<div class="quiz-page page-enter"><div class="quiz-toolbar"><button class="text-button" data-exit-quiz>${icon('x')} Für später aufheben</button><span>Schritt ${quizStep + 1} von ${TOTAL_STEPS}</span></div><div class="progress-track" role="progressbar" aria-label="Quizfortschritt" aria-valuemin="0" aria-valuemax="${TOTAL_STEPS}" aria-valuenow="${quizStep + 1}"><div style="width:${(quizStep + 1) / TOTAL_STEPS * 100}%"></div></div>
     ${quizStep === 0 && hasProgress ? '<div class="continue-notice"><span>Deine bisherigen Antworten sind noch da.</span><button class="text-button" data-reset-quiz>Neu anfangen</button></div>' : ''}
-    <section class="quiz-question"><div class="eyebrow">${label}</div><h1 tabindex="-1" id="question-heading">${title}</h1><p>${subtitle}</p><div class="options ${quizStep >= 12 ? 'multi-options' : ''}" role="group" aria-label="Antwortmöglichkeiten">${options}</div>${extra}<div class="quiz-validation" role="status" aria-live="polite"></div></section>
-    <div class="quiz-bottom"><button class="quiz-back" data-quiz-back ${quizStep === 0 ? 'disabled' : ''}>${icon('back')} Zurück</button><p>${icon('lock').replace('class="icon ', 'style="display:inline-block;vertical-align:middle;width:11px;height:11px" class="icon ')} ${storageAvailable ? 'Deine Antworten bleiben in diesem Browser.' : 'Speichern nicht verfügbar. Antworten bleiben in dieser Sitzung.'}</p><button class="button button-dark" data-quiz-next ${allowNext ? '' : 'disabled'}>${quizStep === 14 ? 'Meine Matches' : 'Weiter'} ${icon('arrow')}</button></div></div>`;
+    <section class="quiz-question"><div class="eyebrow">${label}</div><h1 tabindex="-1" id="question-heading">${title}</h1><p>${subtitle}</p><div class="options ${quizStep >= Q || options.split('data-option=').length > 5 ? 'multi-options' : ''}" role="group" aria-label="Antwortmöglichkeiten">${options}</div>${extra}<div class="quiz-validation" role="status" aria-live="polite"></div></section>
+    <div class="quiz-bottom"><button class="quiz-back" data-quiz-back ${quizStep === 0 ? 'disabled' : ''}>${icon('back')} Zurück</button><p>${icon('lock').replace('class="icon ', 'style="display:inline-block;vertical-align:middle;width:11px;height:11px" class="icon ')} ${storageAvailable ? 'Deine Antworten bleiben in diesem Browser.' : 'Speichern nicht verfügbar. Antworten bleiben in dieser Sitzung.'}</p><button class="button button-dark" data-quiz-next ${allowNext ? '' : 'disabled'}>${quizStep === Q + 2 ? 'Meine Matches' : 'Weiter'} ${icon('arrow')}</button></div></div>`;
 }
 
 function render({ keepScroll = false, focus = false } = {}) {
@@ -255,7 +262,7 @@ function detail(id) {
     <div class="dialog-actions"><button class="button button-dark" data-bookmark="${job.id}" data-dialog-bookmark>${icon('bookmark')} ${bookmarks.has(job.id) ? 'Aus Merkliste entfernen' : 'Auf die Merkliste'}</button><a class="button button-outline" href="https://web.arbeitsagentur.de/berufenet/" target="_blank" rel="noopener noreferrer">In BERUFENET recherchieren ${icon('arrow-up-right')}</a></div>`);
 }
 function methodDialog() {
-  showDialog(`<div class="dialog-header"><div class="eyebrow">Nachvollziehbar statt magisch</div><h2 id="dialog-title">Ein Kompass, kein Orakel.</h2><p>Wir vergleichen deine Antworten mit 240 redaktionell angelegten Berufsprofilen. Es kommen keine KI-API und kein Tracking zum Einsatz.</p></div><div class="method-grid"><div><strong>60 %</strong>Interessen</div><div><strong>25 %</strong>Arbeitswünsche</div><div><strong>15 %</strong>MBTI-Impuls</div></div><div class="dialog-section"><h3>Was steckt in deinem Wert?</h3><p>Die vier Situationsfragen ergänzen deine ausdrücklich gewählten Interessen. Verglichen werden sechs Richtungen: praktisch, forschend, kreativ, sozial, unternehmerisch und strukturierend. Deine Auswahl zählt dabei stärker als eine einzelne Situationsantwort.</p><p style="margin-top:12px">Bei den Arbeitswünschen zählen gewählte Prioritäten und bevorzugte Umgebungen. Für den MBTI-Impuls vergleichen wir die vier Buchstaben mit den hinterlegten Typ-Impulsen. Gleichstand auf einer Achse ergibt X; diese Achse wird nicht gewertet. Ohne verwertbaren MBTI-Impuls verteilen sich die Gewichte auf die übrigen Faktoren.</p></div><div class="dialog-section"><h3>Was dir das Ergebnis sagt</h3><p>Der Wert ist ein heuristischer Orientierungswert, keine Eignungsdiagnose und keine Erfolgswahrscheinlichkeit. Interessenprofile und Typ-Zuordnungen sind vereinfachte redaktionelle Annahmen. Sie sind kein wissenschaftlich validiertes Testverfahren. Fähigkeiten, Abschlüsse und individuelle Lebensumstände werden nicht bewertet. Jeder Beruf bleibt sichtbar, unabhängig vom MBTI-Typ.</p></div><div class="dialog-section"><h3>Berufsidee vertiefen</h3><p>Für verbindliche Informationen zu Tätigkeiten und Zugangswegen nutze die <a class="text-button" href="https://web.arbeitsagentur.de/berufenet/" target="_blank" rel="noopener noreferrer">Berufedatenbank der Bundesagentur für Arbeit</a>.</p></div>`);
+  showDialog(`<div class="dialog-header"><div class="eyebrow">Nachvollziehbar statt magisch</div><h2 id="dialog-title">Ein Kompass, kein Orakel.</h2><p>Wir vergleichen deine Antworten mit ${jobs.length} redaktionell angelegten Berufsprofilen. Es kommen keine KI-API und kein Tracking zum Einsatz.</p></div><div class="method-grid"><div><strong>60 %</strong>Interessen</div><div><strong>25 %</strong>Arbeitswünsche</div><div><strong>15 %</strong>MBTI-Impuls</div></div><div class="dialog-section"><h3>Was steckt in deinem Wert?</h3><p>Die ${questions.filter(q => q.kind === 'scenario').length} Situationsfragen ergänzen deine ausdrücklich gewählten Interessen. Verglichen werden sechs Richtungen: praktisch, forschend, kreativ, sozial, unternehmerisch und strukturierend. Deine Auswahl zählt dabei stärker als eine einzelne Situationsantwort.</p><p style="margin-top:12px">Bei den Arbeitswünschen zählen gewählte Prioritäten und bevorzugte Umgebungen. Für den MBTI-Impuls vergleichen wir die vier Buchstaben mit den hinterlegten Typ-Impulsen. Gleichstand auf einer Achse ergibt X; diese Achse wird nicht gewertet. Ohne verwertbaren MBTI-Impuls verteilen sich die Gewichte auf die übrigen Faktoren.</p></div><div class="dialog-section"><h3>Was dir das Ergebnis sagt</h3><p>Der Wert ist ein heuristischer Orientierungswert, keine Eignungsdiagnose und keine Erfolgswahrscheinlichkeit. Interessenprofile und Typ-Zuordnungen sind vereinfachte redaktionelle Annahmen. Sie sind kein wissenschaftlich validiertes Testverfahren. Fähigkeiten, Abschlüsse und individuelle Lebensumstände werden nicht bewertet. Jeder Beruf bleibt sichtbar, unabhängig vom MBTI-Typ.</p></div><div class="dialog-section"><h3>Berufsidee vertiefen</h3><p>Für verbindliche Informationen zu Tätigkeiten und Zugangswegen nutze die <a class="text-button" href="https://web.arbeitsagentur.de/berufenet/" target="_blank" rel="noopener noreferrer">Berufedatenbank der Bundesagentur für Arbeit</a>.</p></div>`);
 }
 function privacyDialog() {
   showDialog(`<div class="dialog-header"><div class="eyebrow">Deine Antworten gehören dir</div><h2 id="dialog-title">Lokal. Ohne Konto.</h2><p>Quizantworten und Merkliste werden ausschließlich im lokalen Speicher dieses Browsers abgelegt. Du kannst die Seite ohne Anmeldung verwenden.</p></div><div class="dialog-section"><h3>Was gespeichert wird</h3><p>Deine ausgewählten Antworten, Interessen, Arbeitswünsche, ein optional angegebener MBTI-Typ, der Quizfortschritt und die IDs deiner gemerkten Berufe. Beim Löschen der Browserdaten gehen diese Angaben verloren. Auf einem gemeinsam genutzten Gerät können andere Personen desselben Browserprofils darauf zugreifen.</p></div><div class="dialog-section"><h3>Was beim Besuch passiert</h3><p>Die Seite verwendet keine Analyse-Tools, Werbe-Cookies, externen Schriftarten oder externen KI-Dienste. Beim Laden erhält der Hostinganbieter die üblichen technischen Verbindungsdaten, etwa deine IP-Adresse. Links zu BERUFENET öffnen eine externe Website; dort gelten deren Datenschutzbedingungen.</p></div><div class="dialog-section"><h3>Alles wieder auf Anfang?</h3><p>Diese Schaltfläche entfernt deine Antworten, Ergebnisse und Merkliste aus diesem Browser.</p><div class="dialog-actions"><button class="button button-outline" data-delete-data>Alle lokalen Daten löschen</button></div></div>`);
@@ -307,9 +314,9 @@ document.addEventListener('click', event => {
   if (target.hasAttribute('data-load-more')) { const firstNewIndex = filters.limit; filters.limit += 12; updateCatalogue(); const firstNewCard = document.querySelectorAll('#catalogue-grid .card-title-button')[firstNewIndex]; firstNewCard?.focus({ preventScroll: true }); return; }
   if (target.hasAttribute('data-clear-filters')) { filters = { search:'',category:'all',sort:'default',limit:12 }; const search = document.querySelector('#job-search'); search.value = ''; document.querySelector('#category-filter').value = 'all'; document.querySelector('#sort-filter').value = 'default'; updateCatalogue(); search.focus(); return; }
   if (target.hasAttribute('data-option')) {
-    if (quizStep < 12) quiz.answers[quizStep] = Number(target.dataset.option);
+    if (quizStep < Q) quiz.answers[quizStep] = Number(target.dataset.option);
     else {
-      const key = quizStep === 12 ? 'interests' : quizStep === 13 ? 'values' : 'environments';
+      const key = quizStep === Q ? 'interests' : quizStep === Q + 1 ? 'values' : 'environments';
       const value = target.dataset.option;
       if (quiz[key].includes(value)) quiz[key] = quiz[key].filter(id => id !== value);
       else if (key === 'environments' || quiz[key].length < 3) quiz[key].push(value);
@@ -320,7 +327,7 @@ document.addEventListener('click', event => {
     main.innerHTML = quizPage(); document.querySelector(`[data-option="${selectedKey}"]`)?.focus({ preventScroll:true }); window.scrollTo({ top:y, behavior:'instant' }); return;
   }
   if (target.hasAttribute('data-quiz-next')) {
-    if (quizStep < 14) { quizStep++; persist(); render({ focus:true }); }
+    if (quizStep < Q + 2) { quizStep++; persist(); render({ focus:true }); }
     else if (isQuizComplete(quiz)) { profile = makeProfile(quiz); persist(); filters = { search:'',category:'all',sort:'default',limit:12 }; navigate('results'); }
     return;
   }

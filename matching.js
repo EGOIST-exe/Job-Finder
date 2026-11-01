@@ -1,4 +1,6 @@
-import { interests, mbtiTypes, questions } from './data.js';
+import { interests, mbtiTypes, questions, values as valueList, environments as environmentList } from './data.js';
+
+const scenarioCount = questions.filter(q => q.kind === 'scenario').length || 1;
 
 export function deriveType(answers, knownType = '') {
   if (mbtiTypes.includes(knownType)) return knownType;
@@ -13,7 +15,7 @@ export function deriveType(answers, knownType = '') {
 export function makeProfile(quiz) {
   const scores = Object.fromEntries(interests.map(({ id }) => [id, .25]));
   questions.forEach((q, i) => {
-    if (q.kind === 'scenario' && q.options[quiz.answers[i]]) scores[q.options[quiz.answers[i]][0]] += .2;
+    if (q.kind === 'scenario' && q.options[quiz.answers[i]]) scores[q.options[quiz.answers[i]][0]] += .8 / scenarioCount;
   });
   for (const id of quiz.interests) if (id in scores) scores[id] += .65;
   const max = Math.max(...Object.values(scores));
@@ -50,8 +52,8 @@ export function sanitizeQuiz(value) {
   return {
     answers: questions.map((q, i) => Number.isInteger(value?.answers?.[i]) && q.options[value.answers[i]] ? value.answers[i] : null),
     interests: list(value?.interests, 'RIASEC'.split(''), 3),
-    values: list(value?.values, ['creative','impact','structure','autonomy','variety','growth'], 3),
-    environments: list(value?.environments, ['screen','people','outdoor','hands'], 4),
+    values: list(value?.values, valueList.map(v => v.id), 3),
+    environments: list(value?.environments, environmentList.map(e => e.id), environmentList.length),
     knownType: mbtiTypes.includes(value?.knownType) ? value.knownType : ''
   };
 }

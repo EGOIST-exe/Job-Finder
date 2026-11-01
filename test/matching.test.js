@@ -1,21 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { jobs, categories, questions, interests, mbtiTypes } from '../data.js';
+import { jobs, categories, questions, interests, mbtiTypes, values, environments } from '../data.js';
 import { deriveType, makeProfile, rankJobs, scoreJob, sanitizeQuiz, isQuizComplete } from '../matching.js';
 
 const answeredQuiz = overrides => ({
   answers: questions.map(() => 0), interests: ['I'], values: ['growth'], environments: [], knownType: '', ...overrides
 });
 
-test('catalogue contains 240 unique and complete occupational profiles in 24 fields', () => {
-  assert.equal(jobs.length, 240);
-  assert.equal(categories.length, 24);
+test('catalogue contains 552 unique and complete occupational profiles in 30 fields', () => {
+  assert.equal(jobs.length, 552);
+  assert.equal(categories.length, 30);
   assert.equal(new Set(jobs.map(job => job.id)).size, jobs.length);
   assert.equal(new Set(jobs.map(job => job.title)).size, jobs.length);
   for (const job of jobs) {
     assert.ok(categories.some(category => category.id === job.category));
     assert.ok(job.description.length > 30);
     assert.ok(job.values.length && job.environments.length);
+    assert.ok(job.values.every(id => values.some(v => v.id === id)));
+    assert.ok(job.environments.every(id => environments.some(e => e.id === id)));
     assert.ok(job.types.every(type => mbtiTypes.includes(type)));
     assert.deepEqual(Object.keys(job.interests), interests.map(interest => interest.id));
     assert.ok(Object.values(job.interests).every(value => value >= 0 && value <= 1));
@@ -25,7 +27,8 @@ test('catalogue contains 240 unique and complete occupational profiles in 24 fie
 test('MBTI is derived from answers, preserves tied axes, and supports a known type', () => {
   assert.equal(deriveType(questions.map(() => 0)), 'ESTJ');
   assert.equal(deriveType(questions.map(() => 1)), 'INFP');
-  const mixed = questions.map((_, i) => i >= 5 && i <= 8 ? 1 : 0);
+  const seen = {};
+  const mixed = questions.map(q => q.kind === 'personality' ? ((seen[q.axis] = (seen[q.axis] || 0) + 1) % 2) : 0);
   assert.equal(deriveType(mixed), 'XXXX');
   assert.equal(deriveType(mixed, 'INTP'), 'INTP');
   assert.equal(deriveType(mixed, 'INVALID'), 'XXXX');
@@ -76,4 +79,21 @@ test('corrupt stored answers and unknown selections are rejected', () => {
   assert.equal(isQuizComplete(safe),false);
   assert.equal(isQuizComplete(sanitizeQuiz(answeredQuiz())),true);
   assert.doesNotThrow(() => sanitizeQuiz(null));
+});
+
+test('quiz offers 24 questions, balanced MBTI axes and six-way scenarios', () => {
+  assert.equal(questions.length, 24);
+  for (const axis of ['EI','SN','TF','JP']) {
+    const qs = questions.filter(q => q.axis === axis);
+    assert.equal(qs.length, 4);
+    for (const q of qs) {
+      assert.ok(q.options.length >= 2);
+      assert.equal(q.options[0][0], axis[0]);
+      assert.equal(q.options[1][0], axis[1]);
+      assert.ok(q.options.every(([letter]) => axis.includes(letter)));
+    }
+  }
+  for (const q of questions.filter(q => q.kind === 'scenario')) {
+    assert.deepEqual(q.options.map(([id]) => id).sort(), 'RIASEC'.split('').sort());
+  }
 });

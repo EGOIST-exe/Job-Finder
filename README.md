@@ -2,8 +2,8 @@
 
 Spielerische Berufsorientierung von **EGOIST**. Eine deutsche, responsive Website für GitHub Pages – ohne Backend, npm-Abhängigkeiten, API-Schlüssel oder Anmeldung.
 
-- **240 Berufsideen in 24 Berufsfeldern**, durchsuchbar nach Titel, Beschreibung und Bereich.
-- **15 Quizschritte**: 8 Fragen als MBTI-Impuls, 4 Interessenssituationen, persönliche Interessen, Prioritäten und optionale Arbeitsumgebungen.
+- **552 Berufsideen in 30 Berufsfeldern**, durchsuchbar nach Titel, Beschreibung und Bereich.
+- **27 Quizschritte**: 16 Fragen als MBTI-Impuls (je 4 pro Achse, bis zu 4 Antworten), 8 Interessenssituationen mit je 6 Antworten, persönliche Interessen, 10 Prioritäten und 6 optionale Arbeitsumgebungen.
 - Erklärbares Matching: **60 % Interessen, 25 % Arbeitswünsche, maximal 15 % MBTI**.
 - Alle 16 MBTI-Typen; ausgeglichene Achsen bleiben als `X` offen. Ein bekannter Typ kann optional angegeben werden.
 - Merkliste, fortsetzbares Quiz und Export der Ergebnisse bzw. Merkliste als Textdatei.
