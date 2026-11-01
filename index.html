@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5ef">
+  <meta name="description" content="Weniger Planlos, mehr passt zu dir: Entdecke mit einem spielerischen Quiz, deinen Interessen und MBTI 240 Berufsideen.">
+  <title>Jobkompass — Dein Ding ist irgendwo da draußen.</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="Jobkompass Startseite"><span class="brand-icon" aria-hidden="true">✳</span> jobkompass<span class="brand-dot">.</span></a>
+    <nav aria-label="Hauptnavigation">
+      <a href="#explore" data-nav="explore">Berufe entdecken</a>
+      <a href="#how" data-nav="how">So funktioniert’s</a>
+      <a class="saved-link" href="#saved" data-nav="saved" aria-label="Merkliste (0 Berufe)"><span data-icon="bookmark"></span><span>Merkliste</span><span class="saved-count">0</span></a>
+    </nav>
+    <button class="button button-small button-dark header-quiz" data-start>Finde dein Ding <span data-icon="arrow-up-right"></span></button>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="site-footer">
+    <a class="brand" href="#home">jobkompass<span class="brand-dot">.</span></a>
+    <span>Deine Zukunft. Deine Richtung. Kein Schubladendenken.</span>
+    <div><button class="text-button" data-method>Über das Matching</button><button class="text-button" data-privacy>Datenschutz</button><span>Ein Projekt von EGOIST</span></div>
+  </footer>
+  <dialog id="detail-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div><button class="dialog-close icon-button" aria-label="Dialog schließen" data-close><span data-icon="x"></span></button></dialog>
+  <div class="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Für Quiz und Berufekatalog brauchst du JavaScript. Bitte aktiviere es in deinem Browser.</p></noscript>
+</body>
+</html>
